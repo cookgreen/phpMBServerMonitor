@@ -7,6 +7,7 @@ class ServerInfo
 	public $server_mode;
 	public $server_map;
 	public $server_player_nums;
+	public $server_max_player_nums;
 	public $isLocked;
 }
 

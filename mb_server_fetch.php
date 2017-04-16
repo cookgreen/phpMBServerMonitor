@@ -1,5 +1,6 @@
 <?php
 Include("mb_server_info.php");
+Include("mb_server_monitor_config.php");
 
 class ServerInfoFetcher
 {
@@ -53,6 +54,7 @@ class ServerInfoFetcher
 				$si->{"server_mode"}=	$serverXMLData->MapTypeName;
 				$si->{"server_map"}=	$serverXMLData->MapName;
 				$si->{"server_player_nums"}=$serverXMLData->NumberOfActivePlayers;
+				$si->{"server_max_player_nums"}=$serverXMLData->MaxNumberOfPlayers;
 				$si->{"isLocked"}=		$serverXMLData->HasPassword;
 				return $si;
 			}
@@ -62,6 +64,21 @@ class ServerInfoFetcher
 			}
 		}
 	}
+	
+	static function FetchAllServerDetails($ip_array)
+	{
+		$server_info_array=array();
+		$index=0;
+		foreach($ip_array as $current_ip)
+		{
+			
+			$si=ServerInfoFetcher::FetchServerDetailsByIP($current_ip);
+			$server_info_array[$index]=$si;
+			$index++;
+		}
+		return $server_info_array;
+	}
+	
 	static function FetchServerDetailsByIPTest($ip)
 	{
 		if($ip!=null)
