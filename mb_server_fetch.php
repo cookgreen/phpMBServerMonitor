@@ -112,7 +112,7 @@ class ServerInfoFetcher
 				if($serverXMLData!==false)
 				{
 					$serverString .= "<tr>";
-					$serverString .= '<td width="150" align="center">' . $ip_array[$index] . '</td>';
+					$serverString .= '<td width="150" align="center"><a href="http://' . $ip_array[$index] . '">' . $ip_array[$index] . '</a></td>';
 					$serverString .= '<td width="300" align="center">' . $serverXMLData->Name . '</td>';
 					$serverString .= '<td width="100" align="center">' . $serverXMLData->ModuleName . '</td>';
 					$serverString .= '<td width="100" align="center">' . $serverXMLData->MapTypeName . '</td>';

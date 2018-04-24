@@ -1,6 +1,6 @@
 <?php 
-Include("mb_server_fetch.php");
-Include("mb_server_monitor_config.php");
+require_once("mb_server_fetch.php");
+require_once("mb_server_monitor_config.php");
 if(isset($_GET["ip"]))
 {
 	$ip=$_GET["ip"];
@@ -10,9 +10,17 @@ if(isset($_GET["ip"]))
 <html>
 	<head>
 		<title>Server Info on <?php echo $ip ?></title>
+		<script type="text/javascript" src="js/jquery-1.8.2.js"></script>
+		<script type="text/javascript" src="js/table.js"></script>
+		<link rel="stylesheet" href="css/table.css" />
+		<link rel="stylesheet" href="css/common.css" />
 	</head>
 	<body>
-		<table align="center" border="1">
+		<table class="tbServerLst" align="center" border="1">
+			<tr class="table_head">
+				<td width="300" align="center">Item</td>
+				<td width="300" align="center">Value</td>
+			</tr>
 			<tr>
 				<td width="300" align="center">IP</td>
 				<td width="300" align="center"><?php echo $ip ?></td>
@@ -41,14 +49,13 @@ if(isset($_GET["ip"]))
 				<td width="300" align="center">HasPassword</td>
 				<td width="300" align="center"><?php echo $si->{"isLocked"} ?></td>
 			</tr>
-		<?php
+<?php
 }
 else
 {
 	echo "Invalid IP Address";
 }
-			
-		?>
+?>
 		</table>
 	</body>
 </html>

@@ -1,0 +1,4 @@
+.table_head{background-color:#ccc;}   
+.tr_even{background-color:#EBF8FF} 
+.tr_odd{background-color:#DDECF3}    
+.tr_even:hover,.tr_odd:hover{background-color:yellow;}
