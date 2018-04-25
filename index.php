@@ -12,14 +12,14 @@ require_once("mb_server_monitor_config.php");
 		<link rel="stylesheet" href="css/common.css" />
 		<style>
 		html{
-			height: 100%;
+			height: auto;
 		}
 		body{
-			height: 100%;
+			height: auto;
 		}
 		.page_containter{
 			width: 100%;
-			height: 100%;
+			height: auto;
 		}
 		.header{
 			width: 1000px;
@@ -30,7 +30,7 @@ require_once("mb_server_monitor_config.php");
 		.mainpage{
 			width: 1000px;
 			margin: 0 auto;
-			height: 100%;
+			height: auto;
 			padding: 10px;
 		}
 		</style>
@@ -52,10 +52,10 @@ require_once("mb_server_monitor_config.php");
 						<td width="50" align="center">HasPassword</td>
 						<td width="100" align="center">Details</td>
 					</tr>
-				<?php
-					$server_ip_list=ServerInfoFetcher::FetchServerIPList(0);
-					ServerInfoFetcher::FetchAllServerDetails($server_ip_list);
-				?>
+					<?php
+						$server_ip_list=ServerInfoFetcher::FetchServerIPList(0);
+						ServerInfoFetcher::FetchAllServerDetails($server_ip_list);
+					?>
 				</table>
 			</div>
 		</div> 

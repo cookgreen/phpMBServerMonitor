@@ -36,13 +36,14 @@ class ServerInfoFetcher
 	}
 	static function FetchXMLData($ip)
 	{
-		$curl=curl_init();
-		curl_setopt($curl, CURLOPT_URL, $ip); 
-		curl_setopt($curl, CURLOPT_HEADER, 0);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($curl, CURLOPT_TIMEOUT, 5);
-		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
-		$data = curl_exec($curl);
+		$ch=curl_init();
+		curl_setopt($ch, CURLOPT_URL, $ip); 
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+		$data = curl_exec($ch);
+		curl_close($ch);
 		return $data;
 	}
 	static function FetchServerDetailsByIP($ip)
@@ -75,64 +76,70 @@ class ServerInfoFetcher
 	{
 		try
 		{
-		set_time_limit(90); 
-		$server_info_array=array();
-		$index=0;
-		
-		$curl_array = array();
-		$master = curl_multi_init();
-		$running = 1;
-		$count = count($ip_array);
-		
-		for($i = 0;$i < $count;$i++)
-		{
-			$curl_array[$i] = curl_init($ip_array[$i]);
-			curl_setopt($curl_array[$i], CURLOPT_FOLLOWLOCATION, true); 
-			curl_setopt($curl_array[$i],CURLOPT_FRESH_CONNECT,true); 
-			curl_setopt($curl_array[$i],CURLOPT_CONNECTTIMEOUT,10); 
-			curl_setopt($curl_array[$i],CURLOPT_RETURNTRANSFER,true);
-			curl_setopt($curl_array[$i],CURLOPT_TIMEOUT,30); 
+			set_time_limit(90); 
+			$server_info_array=array();
+			$index=0;
 			
-			curl_multi_add_handle($master, $curl_array[$i]); 
-		}
-		do
-		{
-			curl_multi_exec($master, $running);
+			$curl_array = array();
+			$master = curl_multi_init();
+			$count = count($ip_array);
 			
-			$info = curl_multi_info_read($master); 
-            if($info['handle'])
-			{ 
-                $finalresult[] = curl_multi_getcontent($info['handle']); 
-                $returnedOrder[] = array_search($info['handle'], $curl_array, true); 
-                curl_multi_remove_handle($master, $info['handle']); 
-                curl_close($curl_array[end($returnedOrder)]);
-				$index = end($returnedOrder);
-				$serverXMLData=simplexml_load_string($finalresult[$index]);
-				$serverString = '';
-				if($serverXMLData!==false)
-				{
-					$serverString .= "<tr>";
-					$serverString .= '<td width="150" align="center"><a href="http://' . $ip_array[$index] . '">' . $ip_array[$index] . '</a></td>';
-					$serverString .= '<td width="300" align="center">' . $serverXMLData->Name . '</td>';
-					$serverString .= '<td width="100" align="center">' . $serverXMLData->ModuleName . '</td>';
-					$serverString .= '<td width="100" align="center">' . $serverXMLData->MapTypeName . '</td>';
-					$serverString .= '<td width="100" align="center">' . $serverXMLData->MapName . '</td>';
-					$serverString .= '<td width="50" align="center">' . $serverXMLData->NumberOfActivePlayers . '/'. $serverXMLData->MaxNumberOfPlayers . '</td>';
-					$serverString .= '<td width="50" align="center">' . $serverXMLData->HasPassword . '</td>';
-					$serverString .= '<td width="100" align="center"><a href="mb_single_server_monitor.php?ip=' . $ip_array[$index] . '">View</a></td>';
-					$serverString .= "</tr>";
-					echo $serverString;
-				}
-				else
-				{
-					continue;
-				}
+			for($i = 0;$i < $count;$i++)
+			{
+				$curl_array[$i] = curl_init($ip_array[$i]);
+				curl_setopt($curl_array[$i], CURLOPT_FOLLOWLOCATION, true); 
+				curl_setopt($curl_array[$i],CURLOPT_FRESH_CONNECT,true); 
+				curl_setopt($curl_array[$i],CURLOPT_CONNECTTIMEOUT,10); 
+				curl_setopt($curl_array[$i],CURLOPT_RETURNTRANSFER,true);
+				curl_setopt($curl_array[$i],CURLOPT_TIMEOUT,30); 
 				
-				ob_flush();
-				flush(); 
-            } 
-		}while($running > 0);
-		return $server_info_array;
+				curl_multi_add_handle($master, $curl_array[$i]); 
+			}
+			
+			$previoisActive = -1;
+			$finalresult = array();
+			$returnedOrder = array();
+			
+			do
+			{
+				curl_multi_exec($master, $running);
+				if($running != $previoisActive)
+				{
+					$info = curl_multi_info_read($master); 
+					$ch = $info['handle'];
+					if($ch)
+					{ 
+						$finalresult[] = curl_multi_getcontent($ch);
+						$returnedOrder[] = array_search($ch, $curl_array, true);
+						$index = end($returnedOrder);
+						curl_multi_remove_handle($master, $ch); 
+						curl_close($curl_array[$index]);
+						$serverXMLData=simplexml_load_string(end($finalresult));
+						$serverString = '';
+						if($serverXMLData and !empty($serverXMLData->Name))
+						{
+							$serverString .= "<tr>";
+							$serverString .= '<td width="150" align="center"><a href="http://' . $ip_array[$index] . '">' . $ip_array[$index] . '</a></td>';
+							$serverString .= '<td width="300" align="center">' . $serverXMLData->Name . '</td>';
+							$serverString .= '<td width="100" align="center">' . $serverXMLData->ModuleName . '</td>';
+							$serverString .= '<td width="100" align="center">' . $serverXMLData->MapTypeName . '</td>';
+							$serverString .= '<td width="100" align="center">' . $serverXMLData->MapName . '</td>';
+							$serverString .= '<td width="50" align="center">' . $serverXMLData->NumberOfActivePlayers . '/'. $serverXMLData->MaxNumberOfPlayers . '</td>';
+							$serverString .= '<td width="50" align="center">' . $serverXMLData->HasPassword . '</td>';
+							$serverString .= '<td width="100" align="center"><a href="mb_single_server_monitor.php?ip=' . $ip_array[$index] . '">View</a></td>';
+							$serverString .= "</tr>";
+							echo $serverString;
+						}
+						else
+						{
+							continue;
+						}
+						
+						ob_flush();
+						flush(); 
+					} 
+				}
+			}while($running > 0);
 		}
 		catch(Exception $e)
 		{
