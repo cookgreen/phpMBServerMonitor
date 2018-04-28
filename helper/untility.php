@@ -1,4 +1,4 @@
-<?
+<?php
 class Utility
 {
 	static function Ping($address)

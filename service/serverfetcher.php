@@ -1,22 +1,29 @@
 <?php
-Include("mb_server_info.php");
-Include("mb_server_monitor_config.php");
+include("../entity/serverinfo.php");
+include("../config/config.php");
 
 class ServerInfoFetcher
 {
-	static function FetchServerIPList($type)
+	/*
+	* @Description: Fetch Server List from official master server
+	* @Input: Game Type; 0 - Mount&Blade Warband; 1 - Mount&Blade With Fire and Sword
+	* @Output: Server Information Object
+	*/
+	public function FetchServerIPList($type)
 	{
 		try
 		{
 			$url=null;
+			$typeStr=null;
 			if($type==0)//warband
 			{
-				$url="http://warbandmain.taleworlds.com/handlerservers.ashx?type=list&gametype=warband";
+				$typeStr = "warband";
 			}
 			else if($type==1)//wfas
 			{
-				$url="http://warbandmain.taleworlds.com/handlerservers.ashx?type=list&gametype=wfas";
+				$typeStr="wfas";
 			}
+			$url="http://warbandmain.taleworlds.com/handlerservers.ashx?type=list&gametype=" . $typeStr;
 			if($url!=null)
 			{
 				$curl=curl_init();
@@ -31,10 +38,16 @@ class ServerInfoFetcher
 		}
 		catch(Exception $e)
 		{
-			echo 'Error: ' . $e->Message;
+			return FALSE;
 		}
 	}
-	static function FetchXMLData($ip)
+	
+	/*
+	* @Description: Fetch Server XML Data by specific ip address
+	* @Input: Ip
+	* @Output: Server XML Data string
+	*/
+	private function FetchXMLData($ip)
 	{
 		$ch=curl_init();
 		curl_setopt($ch, CURLOPT_URL, $ip); 
@@ -46,13 +59,19 @@ class ServerInfoFetcher
 		curl_close($ch);
 		return $data;
 	}
-	static function FetchServerDetailsByIP($ip)
+	
+	/*
+	* @Description: Fetch Server Information by specific ip address
+	* @Input: Ip
+	* @Output: Server Information Object
+	*/
+	public function FetchServerDetailsByIP($ip)
 	{
 		if($ip!=null)
 		{
-			$data=ServerInfoFetcher::FetchXMLData($ip);
-			$serverXMLData=simplexml_load_string($data);
-			if($serverXMLData!==false)
+			$xml=$this->FetchXMLData($ip);
+			$serverXMLData=simplexml_load_string($xml);
+			if($serverXMLData && !empty($serverXMLData->Mame))
 			{
 				$si=new ServerInfo();
 				$si->{"server_ip"}=	$ip;
@@ -72,13 +91,19 @@ class ServerInfoFetcher
 		}
 	}
 	
-	static function FetchAllServerDetails($ip_array)
+	/*
+	* @Description: Fetch All Server Information and return Json format
+	* @Input: Ip Array
+	* @Output: Json Data Format
+	*/
+	public function FetchAllServerDetailsReturnJson($ip_array)
 	{
 		try
 		{
-			set_time_limit(90); 
+			set_time_limit(0); 
 			$server_info_array=array();
 			$index=0;
+			$cur_idx=0;
 			
 			$curl_array = array();
 			$master = curl_multi_init();
@@ -118,54 +143,47 @@ class ServerInfoFetcher
 						$serverString = '';
 						if($serverXMLData and !empty($serverXMLData->Name))
 						{
-							$serverString .= "<tr>";
-							$serverString .= '<td width="150" align="center"><a href="http://' . $ip_array[$index] . '">' . $ip_array[$index] . '</a></td>';
-							$serverString .= '<td width="300" align="center">' . $serverXMLData->Name . '</td>';
-							$serverString .= '<td width="100" align="center">' . $serverXMLData->ModuleName . '</td>';
-							$serverString .= '<td width="100" align="center">' . $serverXMLData->MapTypeName . '</td>';
-							$serverString .= '<td width="100" align="center">' . $serverXMLData->MapName . '</td>';
-							$serverString .= '<td width="50" align="center">' . $serverXMLData->NumberOfActivePlayers . '/'. $serverXMLData->MaxNumberOfPlayers . '</td>';
-							$serverString .= '<td width="50" align="center">' . $serverXMLData->HasPassword . '</td>';
-							$serverString .= '<td width="100" align="center"><a href="mb_single_server_monitor.php?ip=' . $ip_array[$index] . '">View</a></td>';
-							$serverString .= "</tr>";
-							echo $serverString;
+							$si = new ServerInfo();
+							$si->server_ip = $ip_array[$index];
+							$si->server_name = $serverXMLData->Name->__toString();
+							$si->server_module = $serverXMLData->ModuleName->__toString();
+							$si->server_mode = $serverXMLData->MapTypeName->__toString();
+							$si->server_map = $serverXMLData->MapName->__toString();
+							$si->server_player_nums = $serverXMLData->NumberOfActivePlayers->__toString() . '/'. $serverXMLData->MaxNumberOfPlayers->__toString();
+							$si->isLocked = $serverXMLData->HasPassword->__toString();
+							$server_info_array[$cur_idx] = $si;
+							$cur_idx++;
 						}
 						else
 						{
 							continue;
 						}
-						
-						ob_flush();
-						flush(); 
 					} 
 				}
 			}while($running > 0);
+			
+			return json_encode($server_info_array);
 		}
 		catch(Exception $e)
 		{
-			echo $e->Message;
+			return FALSE;
 		}
-	}
-	
-	static function FetchServerDetailsByIPTest($ip)
-	{
-		if($ip!=null)
-		{
-			$data=ServerInfoFetcher::FetchXMLData($ip);
-			echo $data;
-			$serverXMLData=new SimpleXMLElement($data);
-			echo $serverXMLData->ModuleName;
-		}
-	}
-	
-	function Ping($address)
-	{
-		$ping = exec('ping '. $address);
-		$chunks = explode(' ', $ping);
-		$avg = substr($chunks[10], 0, strlen($chunks[10])-2);
-		echo $avg;
-		return $avg;
 	}
 }
 
+if(isset($_GET["type"]))
+{
+	$interal_type = -1;
+	if(strcmp($_GET["type"], "warband")==0)
+	{
+		$interal_type = 0;
+	}
+	else if(strcmp($_GET["type"], "wfas")==0)
+	{
+		$interal_type = 1;
+	}
+	$s = new ServerInfoFetcher();
+	$retJson = $s->FetchAllServerDetailsReturnJson($s->FetchServerIPList(0));
+	echo $retJson;
+}
 ?>

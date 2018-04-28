@@ -1,6 +1,6 @@
 <?php 
-require_once("mb_server_fetch.php");
-require_once("mb_server_monitor_config.php");
+include("../service/serverfetcher.php");
+include("../config/config.php");
 if(isset($_GET["ip"]))
 {
 	$ip=$_GET["ip"];
