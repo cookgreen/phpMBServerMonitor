@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>phpMBServerMonitor</title>
+		<link rel="stylesheet" href="css/dashboard.css" />
+		<link rel="stylesheet" href="css/dashboard-browse.css" />
+		<link rel="stylesheet" href="css/dashboard-skin-native.css" />
+	</head>
+	<body>
+		<div id="page" class="containter">
+			<div class="left-side-bar left-side-bar-color">
+				<div class="logo logo-color">
+					<div class="logo_text">phpMBServerMonitor</div>
+				</div>
+				<!--<div class="user user-area-color">
+					<div class="user-avatar-area">
+						<div class="user-avatar">
+							<img src="img/user-white.png" style="width: 88px;" />
+						</div>
+					</div>
+					<div class="user-desc-area">
+						<div class="user-desc">
+							<div class="user-desc-name">Login</div>
+							<div class="user-desc-role">You need to login</div>
+						</div>
+					</div>
+				</div>-->
+				<ul>
+					<li onclick="JumpToDashboardPage()">
+						<span class="item-icon"><img src="img/dashboard.png"  /></span>
+						<span class="item-text">Dashboard</span>
+					</li>
+					<li onclick="JumpToBrowsePage()" class="item-active">
+						<span class="item-icon"><img src="img/package.png"  /></span>
+						<span class="item-text">Browse</span>
+					</li>
+					<li onclick="JumpToMonitorPage()">
+						<span class="item-icon"><img src="img/config.png"  /></span>
+						<span class="item-text">Monitor</span>
+					</li>
+					<li onclick="JumpToToolPage()">
+						<span class="item-icon"><img src="img/plugin.png"  /></span>
+						<span class="item-text">Tools</span>
+					</li>
+					<!--<li onclick="JumpToBrowsePage()">
+						<span class="item-icon"><img src="img/logout.png"  /></span>
+						<span class="item-text">Logout</span>
+					</li>-->
+				</ul>
+			</div>
+			<div class="right_content">
+				<div class="header-area">
+					<div class="header">Browse</div>
+				</div>
+				<div class="content browse-container">
+					<div class="browse-panel">
+						<div class="browse-header-area">
+							<div class="browse-header">
+								<span>Game:</span>
+								<span>
+									<select id="gameList" style="padding: 5px; margin-left: 20px;" @change="SelectGameTypeChanged(this)">
+										<option value="0" :selected="selectedIndexMB">MountBlade Warband</option>
+										<option value="1" :selected="selectedIndexWFaS">MountBlade With Fire and Sword</option>
+									</select>
+								</span>
+								<span>
+									<button class="refresh-button refresh-button-color" @click="RefreshData">Refresh</button>
+								</span>
+							</div>
+						</div>
+						<div class="browse-table-area">
+							<div class="browse-table">
+								<table>
+									<thead>
+										<th>Ip</th>
+										<th>Name</th>
+										<th>Module</th>
+										<th>Mode</th>
+										<th>Map</th>
+										<th>Player</th>
+										<th>HasPassword</th>
+									</thead>
+									<tbody>
+										<!--<tr v-for="n in 19">
+											<td>xxxx</td>
+											<td>xxxx</td>
+											<td>xxxx</td>
+											<td>xxxx</td>
+											<td>xxxx</td>
+											<td>xxxx</td>
+											<td>xxxx</td>
+										</tr>-->
+										<tr v-if="!page_ready || serverInfos.length==0">
+											<td colspan="7" style="text-align: center; padding: 20px;">Processing...</td>
+										</tr>
+										<tr v-else="" v-for="(serverInfo, index) in serverInfos">
+											<td>{{serverInfo.server_ip}}</td>
+											<td>{{serverInfo.server_name}}</td>
+											<td>{{serverInfo.server_module}}</td>
+											<td>{{serverInfo.server_mode}}</td>
+											<td>{{serverInfo.server_map}}</td>
+											<td>{{serverInfo.server_player_nums}}</td>
+											<td>{{serverInfo.isLocked}}</td>
+										</tr>
+									</tbody>
+								</table>
+								<div class="page-counter">
+									<div class="page-counter-container">
+										<div v-if="page_ready && current_page!=1">
+											<span class="page-counter-number"><</span>
+										</div>
+										<div v-for="page in total_page" @click="JumpToPage(page)" v-if="page_ready">
+											<template v-if="page==current_page">
+												<span class="page-counter-number page-counter-active page-counter-active-color">{{page}}</span>
+											</template>
+											<template v-else="">
+												<span class="page-counter-number">{{page}}</span>
+											</template>
+										</div>
+										<div v-if="page_ready && current_page!=total_page">
+											<span class="page-counter-number">></span>
+										</div>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/vue.min.js"></script>
+		<script type="text/javascript" src="js/jquery-2.1.0.js"></script>
+		<script type="text/javascript" src="http://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+		<link rel="stylesheet" href="http://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" />
+		<script type="text/javascript">
+			var app = new Vue({
+				el: "#page",
+				data:{
+					page_ready: false,
+					total_page: 0,
+					current_page: 1,
+					type: "warband",
+					selectedIndexMB: 'selected',
+					selectedIndexWFaS: '',
+					serverInfos: []
+				},
+				methods:{
+					RefreshData: function(){
+						app.page_ready = false;
+						if(app.selectedIndexMB=='selected')
+						{
+							app.type = "warband";
+						}
+						else if(app.selectedIndexWFaS=='selected')
+						{
+							app.type = "wfas"
+						}
+						app.FetchServerData(app.type, app.current_page);
+					},
+					JumpToPage: function(page){
+						app.page_ready = false;
+						app.FetchServerData(app.type, page);
+					},
+					SelectGameTypeChanged: function(e){
+						//alert($('#gameList').selectedIndex);
+					},
+					FetchServerData: function(type, page){
+						var fullPath = window.location.href;
+						var rootPath = fullPath.substring(0, fullPath.lastIndexOf("/")+1);
+						var url = rootPath+"service/serverfetcher.php?type="+type+"&page="+page ;
+						console.log(url);
+						$.get(url, function(result){
+							var ret = JSON.parse(result);
+							if(ret.status=="OK")
+							{
+								app.page_ready = true;
+								app.current_page = ret.data.current_number;
+								app.total_page = ret.data.total_number;
+								app.serverInfos = ret.data.paged_data;
+							}
+						})
+					}
+				},
+				mounted: function(){
+					var fullPath = window.location.href;
+					var rootPath = fullPath.substring(0, fullPath.lastIndexOf("/")+1);
+					var url = rootPath+"service/serverfetcher.php?type=warband&page=1" ;
+					$.get(url, function(result){
+						var ret = JSON.parse(result);
+						if(ret.status=="OK")
+						{
+							app.page_ready = true;
+							app.current_page = ret.data.current_number;
+							app.total_page = ret.data.total_number;
+							app.serverInfos = ret.data.paged_data;
+						}
+					})
+				}
+			})
+			
+			function JumpToDashboardPage()
+			{
+				window.location.href = "index.html";
+			}
+			
+			function JumpToBrowsePage()
+			{
+				window.location.href = "browse.html";	
+			}
+			
+			function JumpToMonitorPage()
+			{
+				window.location.href = "monitor.html";
+			}
+			
+			function JumpToToolPage()
+			{
+				window.location.href = "#";
+			}
+		</script>
+	</body>
+</html>

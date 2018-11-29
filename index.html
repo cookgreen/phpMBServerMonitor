@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>phpMBServerMonitor</title>
+		<link rel="stylesheet" href="css/dashboard.css" />
+		<link rel="stylesheet" href="css/dashboard-skin-native.css" />
+	</head>
+	<body>
+		<div class="containter">
+			<div class="left-side-bar left-side-bar-color">
+				<div class="logo logo-color">
+					<div class="logo_text">phpMBServerMonitor</div>
+				</div>
+				<!--<div class="user user-area-color">
+					<div class="user-avatar-area">
+						<div class="user-avatar">
+							<img src="img/user-white.png" style="width: 88px;" />
+						</div>
+					</div>
+					<div class="user-desc-area">
+						<div class="user-desc">
+							<div class="user-desc-name">Login</div>
+							<div class="user-desc-role">You need to login</div>
+						</div>
+					</div>
+				</div>-->
+				<ul>
+					<li class="item-active" onclick="JumpToDashboardPage()">
+						<span class="item-icon"><img src="img/dashboard.png"  /></span>
+						<span class="item-text">Dashboard</span>
+					</li>
+					<li onclick="JumpToBrowsePage()">
+						<span class="item-icon"><img src="img/package.png"  /></span>
+						<span class="item-text">Browse</span>
+					</li>
+					<li onclick="JumpToMonitorPage()">
+						<span class="item-icon"><img src="img/config.png"  /></span>
+						<span class="item-text">Monitor</span>
+					</li>
+					<li onclick="JumpToToolPage()">
+						<span class="item-icon"><img src="img/plugin.png"  /></span>
+						<span class="item-text">Tools</span>
+					</li>
+					<!--<li onclick="JumpToBrowsePage()">
+						<span class="item-icon"><img src="img/logout.png"  /></span>
+						<span class="item-text">Logout</span>
+					</li>-->
+				</ul>
+			</div>
+			<div class="right_content">
+				<div class="header-area">
+					<div class="header">Dashboard</div>
+				</div>
+				<div class="content">
+					<div class="content-container">
+						<div class="content-area">
+							<div class="dashboard-overview-left dashboard-color-1"></div>
+						</div>
+					</div>
+					<div class="content-container">
+						<div class="content-area">
+							<div class="dashboard-overview-right dashboard-color-2"></div>
+						</div>
+					</div>
+					<div class="content-container">
+						<div class="content-area">
+							<div class="dashboard-overview-left dashboard-color-3"></div>
+						</div>
+					</div>
+					<div class="content-container">
+						<div class="content-area">
+							<div class="dashboard-overview-right dashboard-color-3"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<script type="text/javascript">
+			function JumpToDashboardPage()
+			{
+				window.location.href = "index.html";
+			}
+			
+			function JumpToBrowsePage()
+			{
+				window.location.href = "browse.html";	
+			}
+			
+			function JumpToMonitorPage()
+			{
+				window.location.href = "monitor.html";
+			}
+			
+			function JumpToToolPage()
+			{
+				window.location.href = "#";
+			}
+		</script>
+	</body>
+</html>

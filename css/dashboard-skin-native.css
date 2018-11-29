@@ -1,0 +1,40 @@
+.left-side-bar-color{
+	background-color: #393d48;
+}
+
+.left-side-bar li:hover{
+	background-color: #323640;
+}
+
+.item-active{
+	background-color: #323640;
+}
+
+.logo-color{
+	background-color: #232939;
+}
+
+.user-area-color{
+	background-color: #3d424e;
+}
+
+.dashboard-color-1{
+	background-color: #04877c;
+}
+
+.dashboard-color-2{
+	background-color: #0278b5;
+}
+
+.dashboard-color-3{
+	background-color: white;
+}
+
+.refresh-button-color{
+	background-color: #2b8bd5;
+}
+
+.page-counter-active-color{
+	background-color: #0278B5;
+	color: white;
+}
