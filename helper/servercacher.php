@@ -99,6 +99,7 @@ class ServerCacher
 			$si->server_player_nums = $fields[5];
 			$si->server_max_player_nums = $fields[6];
 			$si->isLocked = $fields[7];
+			fclose($this->fp);
 			return $si;
 		}
 		else

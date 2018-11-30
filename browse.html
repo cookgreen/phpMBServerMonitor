@@ -94,7 +94,7 @@
 										<tr v-if="!page_ready || serverInfos.length==0">
 											<td colspan="7" style="text-align: center; padding: 20px;">Processing...</td>
 										</tr>
-										<tr v-else="" v-for="(serverInfo, index) in serverInfos">
+										<tr v-else="" v-for="(serverInfo, index) in pagedServerInfos">
 											<td><a :href="'monitor.html?ip='+serverInfo.server_ip">{{serverInfo.server_ip}}</a></td>
 											<td>{{serverInfo.server_name}}</td>
 											<td>{{serverInfo.server_module}}</td>
@@ -143,7 +143,9 @@
 					type: "warband",
 					selectedIndexMB: 'selected',
 					selectedIndexWFaS: '',
-					serverInfos: []
+					serverInfos: [],
+					pagedServerInfos: [],
+					display_num: 12,
 				},
 				methods:{
 					RefreshData: function(){
@@ -166,35 +168,25 @@
 						//alert($('#gameList').selectedIndex);
 					},
 					FetchServerData: function(type, page){
-						var fullPath = window.location.href;
-						var rootPath = fullPath.substring(0, fullPath.lastIndexOf("/")+1);
-						var url = rootPath+"service/serverfetcher.php?type="+type+"&page="+page ;
-						console.log(url);
-						$.get(url, function(result){
-							var ret = JSON.parse(result);
-							if(ret.status=="OK")
-							{
-								app.page_ready = true;
-								app.current_page = ret.data.current_number;
-								app.total_page = ret.data.total_number;
-								app.serverInfos = ret.data.paged_data;
-							}
-						})
+						app.page_ready = true;
+						app.current_page = page;
+						var start = (page-1)*app.display_num;
+						var end = start + app.display_num;
+						app.pagedServerInfos = app.serverInfos.slice(start, end);
 					}
 				},
 				mounted: function(){
 					var fullPath = window.location.href;
 					var rootPath = fullPath.substring(0, fullPath.lastIndexOf("/")+1);
-					var url = rootPath+"service/serverfetcher.php?type=warband&page=1" ;
+					var url = rootPath+"service/serverfetcher.php?type=warband" ;
 					$.get(url, function(result){
 						var ret = JSON.parse(result);
-						if(ret.status=="OK")
-						{
-							app.page_ready = true;
-							app.current_page = ret.data.current_number;
-							app.total_page = ret.data.total_number;
-							app.serverInfos = ret.data.paged_data;
-						}
+						app.page_ready = true;
+						app.serverInfos = ret;
+						app.pagedServerInfos = app.serverInfos.slice((app.current_page-1)*app.display_num, app.display_num);
+						
+						var count = app.serverInfos.length;
+						app.total_page = Math.ceil(count / app.display_num);
 					})
 				}
 			})
