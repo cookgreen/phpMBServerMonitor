@@ -126,10 +126,8 @@
 				},
 				mounted: function(){
 					var path = getCurrentPathWithoutFile();
-					console.log(path);
 					$.get(path + "service/singleserverfetcher.php?ip="+ip, function(result){
 						var ret = JSON.parse(result);
-						console.log(result);
 						app.serverInfo = ret;
 					})
 				}

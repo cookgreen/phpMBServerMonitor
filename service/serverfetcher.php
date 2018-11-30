@@ -1,14 +1,23 @@
 <?php
-include("../entity/resultmessage.php");
-include("../entity/pagecounter.php");
-include("../entity/serverinfo.php");
-include("../config/config.php");
+require_once("../helper/servercacher.php");
+require_once("../helper/untility.php");
+require_once("../entity/resultmessage.php");
+require_once("../entity/pagecounter.php");
+require_once("../entity/serverinfo.php");
+require_once("../config/config.php");
 
 header('Access-Control-Allow-Origin:*');
 
 
 class ServerInfoFetcher
 {
+	private $cacher;
+	
+	public function __construct()
+	{
+		$this->cacher = new ServerCacher("../cache/serverlist.manifest");
+	}
+	
 	/*
 	* @Description: Fetch Server List from official master server
 	* @Input: Game Type; 0 - Mount&Blade Warband; 1 - Mount&Blade With Fire and Sword
@@ -163,58 +172,73 @@ class ServerInfoFetcher
 			$master = curl_multi_init();
 			$count = count($ip_array);
 			
-			for($i = 0;$i < $count;$i++)
+			if($this->cacher->CheckCacheExist())
 			{
-				$curl_array[$i] = curl_init($ip_array[$i]);
-				curl_setopt($curl_array[$i], CURLOPT_FOLLOWLOCATION, true); 
-				curl_setopt($curl_array[$i],CURLOPT_FRESH_CONNECT,true); 
-				curl_setopt($curl_array[$i],CURLOPT_CONNECTTIMEOUT,10); 
-				curl_setopt($curl_array[$i],CURLOPT_RETURNTRANSFER,true);
-				curl_setopt($curl_array[$i],CURLOPT_TIMEOUT,30); 
-				
-				curl_multi_add_handle($master, $curl_array[$i]); 
-			}
-			
-			$previoisActive = -1;
-			$finalresult = array();
-			$returnedOrder = array();
-			
-			do
-			{
-				curl_multi_exec($master, $running);
-				if($running != $previoisActive)
+				for($i = 0;$i < $count;$i++)
 				{
-					$info = curl_multi_info_read($master); 
-					$ch = $info['handle'];
-					if($ch)
-					{ 
-						$finalresult[] = curl_multi_getcontent($ch);
-						$returnedOrder[] = array_search($ch, $curl_array, true);
-						$index = end($returnedOrder);
-						curl_multi_remove_handle($master, $ch); 
-						curl_close($curl_array[$index]);
-						$serverXMLData=simplexml_load_string(end($finalresult));
-						$serverString = '';
-						if($serverXMLData and !empty($serverXMLData->Name))
-						{
-							$si = new ServerInfo();
-							$si->server_ip = $ip_array[$index];
-							$si->server_name = $serverXMLData->Name->__toString();
-							$si->server_module = $serverXMLData->ModuleName->__toString();
-							$si->server_mode = $serverXMLData->MapTypeName->__toString();
-							$si->server_map = $serverXMLData->MapName->__toString();
-							$si->server_player_nums = $serverXMLData->NumberOfActivePlayers->__toString() . '/'. $serverXMLData->MaxNumberOfPlayers->__toString();
-							$si->isLocked = $serverXMLData->HasPassword->__toString();
-							$server_info_array[$cur_idx] = $si;
-							$cur_idx++;
-						}
-						else
-						{
-							continue;
-						}
-					} 
+					$ip = $ip_array[$i];
+					$si = $this->cacher->ReadCacheDataFromCSV($this->cacher->GetCachedCSVByIP($ip));
+					$server_info_array[$i] = $si;
 				}
-			}while($running > 0);
+			}
+			else
+			{
+				$this->cacher->CreateCache();	
+				
+				for($i = 0;$i < $count;$i++)
+				{
+					$curl_array[$i] = curl_init($ip_array[$i]);
+					curl_setopt($curl_array[$i], CURLOPT_FOLLOWLOCATION, true); 
+					curl_setopt($curl_array[$i],CURLOPT_FRESH_CONNECT,true); 
+					curl_setopt($curl_array[$i],CURLOPT_CONNECTTIMEOUT,10); 
+					curl_setopt($curl_array[$i],CURLOPT_RETURNTRANSFER,true);
+					curl_setopt($curl_array[$i],CURLOPT_TIMEOUT,30); 
+					
+					curl_multi_add_handle($master, $curl_array[$i]); 
+				}
+				
+				$previoisActive = -1;
+				$finalresult = array();
+				$returnedOrder = array();
+				
+				do
+				{
+					curl_multi_exec($master, $running);
+					if($running != $previoisActive)
+					{
+						$info = curl_multi_info_read($master); 
+						$ch = $info['handle'];
+						if($ch)
+						{ 
+							$finalresult[] = curl_multi_getcontent($ch);
+							$returnedOrder[] = array_search($ch, $curl_array, true);
+							$index = end($returnedOrder);
+							curl_multi_remove_handle($master, $ch); 
+							curl_close($curl_array[$index]);
+							$serverXMLData=simplexml_load_string(end($finalresult));
+							$serverString = '';
+							if($serverXMLData and !empty($serverXMLData->Name))
+							{
+								$si = new ServerInfo();
+								$si->server_ip = $ip_array[$index];
+								$si->server_name = $serverXMLData->Name->__toString();
+								$si->server_module = $serverXMLData->ModuleName->__toString();
+								$si->server_mode = $serverXMLData->MapTypeName->__toString();
+								$si->server_map = $serverXMLData->MapName->__toString();
+								$si->server_player_nums = $serverXMLData->NumberOfActivePlayers->__toString() . '/'. $serverXMLData->MaxNumberOfPlayers->__toString();
+								$si->isLocked = $serverXMLData->HasPassword->__toString();
+								$server_info_array[$cur_idx] = $si;
+								$this->cacher->CacheDataToCSV($si, Utility::guid() . ".csv", "../cache", 1);
+								$cur_idx++;
+							}
+							else
+							{
+								continue;
+							}
+						} 
+					}
+				}while($running > 0);
+			}
 			
 			return json_encode($server_info_array);
 		}

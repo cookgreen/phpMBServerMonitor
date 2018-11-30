@@ -1,6 +1,6 @@
 <?php 
-include("../service/serverfetcher.php");
-include("../config/config.php");
+require_once("../service/serverfetcher.php");
+require_once("../config/config.php");
 if(isset($_GET["ip"]))
 {
 	$ip=$_GET["ip"];
