@@ -4,10 +4,11 @@
 		<meta charset="utf-8" />
 		<title>phpMBServerMonitor</title>
 		<link rel="stylesheet" href="css/dashboard.css" />
+		<link rel="stylesheet" href="css/dashboard-browse.css" />
 		<link rel="stylesheet" href="css/dashboard-skin-native.css" />
 	</head>
 	<body>
-		<div class="containter">
+		<div id="page" class="containter">
 			<div class="left-side-bar left-side-bar-color">
 				<div class="logo logo-color">
 					<div class="logo_text">phpMBServerMonitor</div>
@@ -50,34 +51,91 @@
 			</div>
 			<div class="right_content">
 				<div class="header-area">
-					<div class="header">Dashboard</div>
+					<div class="header">Monitor</div>
 				</div>
-				<div class="content">
-					<div class="content-container">
-						<div class="content-area">
-							<div class="dashboard-overview-left dashboard-color-1"></div>
+				<div class="content browse-container">
+					<div class="browse-panel">
+						<div class="browse-header-area center-text">
+							<div class="browse-header bold-text">Details of {{serverInfo.server_ip}}</div>
 						</div>
-					</div>
-					<div class="content-container">
-						<div class="content-area">
-							<div class="dashboard-overview-right dashboard-color-2"></div>
-						</div>
-					</div>
-					<div class="content-container">
-						<div class="content-area">
-							<div class="dashboard-overview-left dashboard-color-3"></div>
-						</div>
-					</div>
-					<div class="content-container">
-						<div class="content-area">
-							<div class="dashboard-overview-right dashboard-color-3"></div>
+						<div class="browse-table-area">
+							<div class="browse-table">
+								<table>
+									<tbody>
+										<tr>
+											<td>IP</td>
+											<td>{{serverInfo.server_ip}}</td>
+										</tr>
+										<tr>
+											<td>Name</td>
+											<td>{{serverInfo.server_name}}</td>
+										</tr>
+										<tr>
+											<td>Module</td>
+											<td>{{serverInfo.server_module}}</td>
+										</tr>
+										<tr>
+											<td>Mode</td>
+											<td>{{serverInfo.server_mode}}</td>
+										</tr>
+										<tr>
+											<td>Map</td>
+											<td>{{serverInfo.server_map}}</td>
+										</tr>
+										<tr>
+											<td>Player Number</td>
+											<td>{{serverInfo.server_player_nums}}</td>
+										</tr>
+										<tr>
+											<td>HasPassword</td>
+											<td>{{serverInfo.isLocked}}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		
+		<script type="text/javascript" src="js/jquery-2.1.0.js"></script>
+		<script type="text/javascript" src="js/vue.min.js"></script>
+		<script type="text/javascript" src="js/util.js"></script>
 		<script type="text/javascript">
+			var ip = getUrlParam("ip");
+			if(ip==null)
+			{
+				window.location.href = "index.html";
+			}
+			
+			var app = new Vue({
+				el: "#page",
+				data: {
+					serverInfo:{
+						server_ip: null,
+						server_name: null,
+						server_module: null,
+						server_mode: null,
+						server_map: null,
+						server_player_nums: null,
+						isLocked: null
+					}
+				},
+				methods: {
+					
+				},
+				mounted: function(){
+					var path = getCurrentPathWithoutFile();
+					console.log(path);
+					$.get(path + "service/singleserverfetcher.php?ip="+ip, function(result){
+						var ret = JSON.parse(result);
+						console.log(result);
+						app.serverInfo = ret;
+					})
+				}
+			})
+			
+			
 			function JumpToDashboardPage()
 			{
 				window.location.href = "index.html";

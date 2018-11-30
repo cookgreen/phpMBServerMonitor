@@ -115,3 +115,11 @@ body{
 	margin-left: 24px;
 	margin-right: 48px;
 }
+
+.center-text{
+	text-align: center;
+}
+
+.bold-text{
+	font-weight: bold;
+}

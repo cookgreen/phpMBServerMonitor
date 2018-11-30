@@ -124,7 +124,7 @@ class ServerInfoFetcher
 		{
 			$xml=$this->FetchXMLData($ip);
 			$serverXMLData=simplexml_load_string($xml);
-			if($serverXMLData && !empty($serverXMLData->Mame))
+			if($serverXMLData && !empty($serverXMLData->Name))
 			{
 				$si=new ServerInfo();
 				$si->{"server_ip"}=	$ip;

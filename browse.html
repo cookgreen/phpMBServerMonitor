@@ -95,7 +95,7 @@
 											<td colspan="7" style="text-align: center; padding: 20px;">Processing...</td>
 										</tr>
 										<tr v-else="" v-for="(serverInfo, index) in serverInfos">
-											<td>{{serverInfo.server_ip}}</td>
+											<td><a :href="'monitor.html?ip='+serverInfo.server_ip">{{serverInfo.server_ip}}</a></td>
 											<td>{{serverInfo.server_name}}</td>
 											<td>{{serverInfo.server_module}}</td>
 											<td>{{serverInfo.server_mode}}</td>
