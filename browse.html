@@ -110,7 +110,7 @@
 										<div v-if="page_ready && current_page!=1">
 											<span class="page-counter-number"><</span>
 										</div>
-										<div v-for="page in total_page" @click="JumpToPage(page)" v-if="page_ready">
+										<div v-if="page_ready" v-for="page in total_page" @click="JumpToPage(page)">
 											<template v-if="page==current_page">
 												<span class="page-counter-number page-counter-active page-counter-active-color">{{page}}</span>
 											</template>
@@ -133,6 +133,7 @@
 		<script type="text/javascript" src="js/jquery-2.1.0.js"></script>
 		<script type="text/javascript" src="http://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 		<link rel="stylesheet" href="http://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" />
+		<script type="text/javascript" src="js/monitor.js"></script>
 		<script type="text/javascript">
 			var app = new Vue({
 				el: "#page",
@@ -190,26 +191,6 @@
 					})
 				}
 			})
-			
-			function JumpToDashboardPage()
-			{
-				window.location.href = "index.html";
-			}
-			
-			function JumpToBrowsePage()
-			{
-				window.location.href = "browse.html";	
-			}
-			
-			function JumpToMonitorPage()
-			{
-				window.location.href = "monitor.html";
-			}
-			
-			function JumpToToolPage()
-			{
-				window.location.href = "#";
-			}
 		</script>
 	</body>
 </html>

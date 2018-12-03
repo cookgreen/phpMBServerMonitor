@@ -20,5 +20,10 @@ class Utility
         .substr($charid,20,12);
     return $uuid;
 	}
+	
+	static function getFileExtension($filename)
+	{
+		return substr($filename, strrpos($filename, ".")+1);
+	}
 }
 ?>

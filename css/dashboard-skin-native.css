@@ -11,7 +11,7 @@
 }
 
 .logo-color{
-	background-color: #232939;
+	background-color: #393d48;
 }
 
 .user-area-color{
@@ -36,5 +36,21 @@
 
 .page-counter-active-color{
 	background-color: #0278B5;
+	color: white;
+}
+
+.browse-card-button-back-color{
+	background-color: white;
+}
+
+.browse-card-button-back-color:hover{
+	background-color: #0278B5;
+}
+
+.browse-card-button-font-color{
+	color: #0278B5;
+}
+
+.browse-card-button-font-color:hover{
 	color: white;
 }

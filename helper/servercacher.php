@@ -2,6 +2,7 @@
 require_once("../entity/serverinfo.php");
 require_once("Untility.php");
 /*
+ * @Name: ServerCacher
  * @Description: Cache the data from remote server 
  */
 class ServerCacher
@@ -50,16 +51,30 @@ class ServerCacher
 	
 	public function ClearCache()
 	{
+		if(!file_exists($this->manifest_file))
+		{
+			return FALSE;
+		}
 		$this->fp = fopen($this->manifest_file, "r");
 		if($this->fp!=FALSE)
 		{
 			while(!feof($this->fp)) {
 				$line = fgets($this->fp);
 				$tokens = explode(" ", $line);
-				unlink($tokens[1]);
+				unlink("'" . $tokens[1] . "'");
 			}
 		}
-		unlink($this->manifest_file);
+		unlink("'" . $this->manifest_file . "'");
+		
+		$handler = opendir("../cache/");
+		while(($filename = readdir($handler)) !== FALSE)
+		{
+			$extension = Utility::getFileExtension($filename);
+			if(strcmp($extension, "csv")==0)
+			{
+				unlink("../cache/" . $filename);
+			}
+		}
 	}
 	
 	public function GetCachedCSVByIP($ip)
@@ -90,6 +105,10 @@ class ServerCacher
 		if($this->fp!=FALSE)
 		{
 			$fields = fgetcsv($this->fp);
+			if(empty($fields[0]) || $fields[0]==null)
+			{
+				return;
+			}
 			$si = new ServerInfo();
 			$si->server_ip = $fields[0];
 			$si->server_name = $fields[1];

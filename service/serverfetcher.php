@@ -19,10 +19,11 @@ class ServerInfoFetcher
 	}
 	
 	/*
-	* @Description: Fetch Server List from official master server
-	* @Input: Game Type; 0 - Mount&Blade Warband; 1 - Mount&Blade With Fire and Sword
-	* @Output: Server Information Object
-	*/
+	 * @Name: FetchServerIPList
+	 * @Description: Fetch Server List from official master server
+	 * @Input: Game Type; 0 - Mount&Blade Warband; 1 - Mount&Blade With Fire and Sword
+	 * @Output: Server Information Object
+	 */
 	public function FetchServerIPList($type)
 	{
 		try
@@ -57,10 +58,11 @@ class ServerInfoFetcher
 	}
 	
 	/*
-	* @Description: Fetch Server List from official master server
-	* @Input: Game Type; 0 - Mount&Blade Warband; 1 - Mount&Blade With Fire and Sword
-	* @Output: Server Information Object
-	*/
+	 * @Name: FetchServerIPListByPage
+	 * @Description: Fetch Server List from official master server
+	 * @Input: Game Type; 0 - Mount&Blade Warband; 1 - Mount&Blade With Fire and Sword
+	 * @Output: Server Information Object
+	 */
 	public function FetchServerIPListByPage($type, $page)
 	{
 		try
@@ -105,10 +107,11 @@ class ServerInfoFetcher
 	}
 	
 	/*
-	* @Description: Fetch Server XML Data by specific ip address
-	* @Input: Ip
-	* @Output: Server XML Data string
-	*/
+	 * @Name: FetchXMLData
+	 * @Description: Fetch Server XML Data by specific ip address
+	 * @Input: Ip
+	 * @Output: Server XML Data string
+	 */
 	private function FetchXMLData($ip)
 	{
 		$ch=curl_init();
@@ -123,42 +126,12 @@ class ServerInfoFetcher
 	}
 	
 	/*
-	* @Description: Fetch Server Information by specific ip address
-	* @Input: Ip
-	* @Output: Server Information Object
-	*/
-	public function FetchServerDetailsByIP($ip)
-	{
-		if($ip!=null)
-		{
-			$xml=$this->FetchXMLData($ip);
-			$serverXMLData=simplexml_load_string($xml);
-			if($serverXMLData && !empty($serverXMLData->Name))
-			{
-				$si=new ServerInfo();
-				$si->{"server_ip"}=	$ip;
-				$si->{"server_name"}=	$serverXMLData->Name;
-				$si->{"server_module"}=$serverXMLData->ModuleName;
-				$si->{"server_mode"}=	$serverXMLData->MapTypeName;
-				$si->{"server_map"}=	$serverXMLData->MapName;
-				$si->{"server_player_nums"}=$serverXMLData->NumberOfActivePlayers;
-				$si->{"server_max_player_nums"}=$serverXMLData->MaxNumberOfPlayers;
-				$si->{"isLocked"}=		$serverXMLData->HasPassword;
-				return $si;
-			}
-			else
-			{
-				return null;
-			}
-		}
-	}
-	
-	/*
-	* @Description: Fetch All Server Information and return Json format
-	* @Input: Ip Array
-	* @Output: Json Data Format
-	*/
-	public function FetchAllServerDetailsReturnJson($ip_array)
+	 * @Name: FetchServerDetails
+	 * @Description: Fetch Server Details Information by various ip addresses
+	 * @Input: Ip Array
+	 * @Output Server Info Object Array
+	 */
+	public function FetchServerDetails($ip_array)
 	{
 		try
 		{
@@ -174,11 +147,20 @@ class ServerInfoFetcher
 			
 			if($this->cacher->CheckCacheExist())
 			{
+				$index = 0;
 				for($i = 0;$i < $count;$i++)
 				{
 					$ip = $ip_array[$i];
 					$si = $this->cacher->ReadCacheDataFromCSV($this->cacher->GetCachedCSVByIP($ip));
-					$server_info_array[$i] = $si;
+					if($si==FALSE)
+					{
+						continue;						
+					}
+					else
+					{
+						$server_info_array[$index] = $si;
+						$index++;
+					}
 				}
 			}
 			else
@@ -240,7 +222,7 @@ class ServerInfoFetcher
 				}while($running > 0);
 			}
 			
-			return json_encode($server_info_array);
+			return $server_info_array;
 		}
 		catch(Exception $e)
 		{
@@ -249,81 +231,49 @@ class ServerInfoFetcher
 	}
 	
 	/*
-	* @Description: Fetch Paged Server Information and return Json format
-	* @Input: Ip Array
-	* @Output: Json Data Format
-	*/
+	 * @Name: FetchServerDetailsByIP
+	 * @Description: Fetch Server Information by specific ip address
+	 * @Input: Ip
+	 * @Output: Server Information Object
+	 */
+	public function FetchServerDetailsByIP($ip)
+	{
+		if($ip!=null)
+		{
+			$ip_array = array();
+			$ip_array[0] = $ip;
+			return $this->FetchServerDetails($ip_array)[0];
+		}
+	}
+	
+	/*
+	 * @Name: FetchAllServerDetailsReturnJson
+	 * @Description: Fetch All Server Information and return Json format
+	 * @Input: Ip Array
+	 * @Output: Json Data Format
+	 */
+	public function FetchAllServerDetailsReturnJson($ip_array)
+	{
+		return json_encode($this->FetchServerDetails($ip_array));
+	}
+
+	
+	/*
+	 * @Name: FetchAllServerDetailsReturnPagedJson
+	 * @Description: Fetch Paged Server Information and return Json format
+	 * @Input: Ip Array
+	 * @Output: Json Data Format
+	 */
 	public function FetchAllServerDetailsReturnPagedJson($ip_array, $totalPage, $currentPage)
 	{
 		try
 		{
-			set_time_limit(0); 
-			
 			$resultMsg = new ResultMessage();
 			$pageCounter = new PageCounter();
 			$pageCounter->current_number = $currentPage;
 			$pageCounter->total_number = $totalPage;
 			
-			$server_info_array=array();
-			$index=0;
-			$cur_idx=0;
-			
-			$curl_array = array();
-			$master = curl_multi_init();
-			$count = count($ip_array);
-			
-			for($i = 0;$i < $count;$i++)
-			{
-				$curl_array[$i] = curl_init($ip_array[$i]);
-				curl_setopt($curl_array[$i], CURLOPT_FOLLOWLOCATION, true); 
-				curl_setopt($curl_array[$i],CURLOPT_FRESH_CONNECT,true); 
-				curl_setopt($curl_array[$i],CURLOPT_CONNECTTIMEOUT,10); 
-				curl_setopt($curl_array[$i],CURLOPT_RETURNTRANSFER,true);
-				curl_setopt($curl_array[$i],CURLOPT_TIMEOUT,30); 
-				
-				curl_multi_add_handle($master, $curl_array[$i]); 
-			}
-			
-			$previoisActive = -1;
-			$finalresult = array();
-			$returnedOrder = array();
-			
-			do
-			{
-				curl_multi_exec($master, $running);
-				if($running != $previoisActive)
-				{
-					$info = curl_multi_info_read($master); 
-					$ch = $info['handle'];
-					if($ch)
-					{ 
-						$finalresult[] = curl_multi_getcontent($ch);
-						$returnedOrder[] = array_search($ch, $curl_array, true);
-						$index = end($returnedOrder);
-						curl_multi_remove_handle($master, $ch); 
-						curl_close($curl_array[$index]);
-						$serverXMLData=simplexml_load_string(end($finalresult));
-						$serverString = '';
-						if($serverXMLData and !empty($serverXMLData->Name))
-						{
-							$si = new ServerInfo();
-							$si->server_ip = $ip_array[$index];
-							$si->server_name = $serverXMLData->Name->__toString();
-							$si->server_module = $serverXMLData->ModuleName->__toString();
-							$si->server_mode = $serverXMLData->MapTypeName->__toString();
-							$si->server_map = $serverXMLData->MapName->__toString();
-							$si->server_player_nums = $serverXMLData->NumberOfActivePlayers->__toString() . '/'. $serverXMLData->MaxNumberOfPlayers->__toString();
-							$si->isLocked = $serverXMLData->HasPassword->__toString();
-							$server_info_array[$cur_idx] = $si;
-							$cur_idx++;
-						}
-						else
-						{
-							continue;
-						}
-					} 
-				}
-			}while($running > 0);
+			$server_info_array=$this->FetchServerDetails($ip_array);
 			
 			$pageCounter->paged_data = $server_info_array;
 			$resultMsg->status="OK";

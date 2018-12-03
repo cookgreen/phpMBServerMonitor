@@ -35,11 +35,11 @@
 						<span class="item-icon"><img src="img/package.png"  /></span>
 						<span class="item-text">Browse</span>
 					</li>
-					<li onclick="JumpToMonitorPage()" class="item-active">
+					<li onclick="JumpToMonitorPage()">
 						<span class="item-icon"><img src="img/config.png"  /></span>
 						<span class="item-text">Monitor</span>
 					</li>
-					<li onclick="JumpToToolPage()">
+					<li onclick="JumpToToolPage()" class="item-active">
 						<span class="item-icon"><img src="img/plugin.png"  /></span>
 						<span class="item-text">Tools</span>
 					</li>
@@ -51,47 +51,25 @@
 			</div>
 			<div class="right_content">
 				<div class="header-area">
-					<div class="header">Monitor</div>
+					<div class="header">Tools</div>
 				</div>
 				<div class="content browse-container">
 					<div class="browse-panel">
-						<div class="browse-header-area center-text">
-							<div class="browse-header bold-text">Details of {{serverInfo.server_ip}}</div>
-						</div>
-						<div class="browse-table-area">
-							<div class="browse-table">
-								<table>
-									<tbody>
-										<tr>
-											<td>IP</td>
-											<td>{{serverInfo.server_ip}}</td>
-										</tr>
-										<tr>
-											<td>Name</td>
-											<td>{{serverInfo.server_name}}</td>
-										</tr>
-										<tr>
-											<td>Module</td>
-											<td>{{serverInfo.server_module}}</td>
-										</tr>
-										<tr>
-											<td>Mode</td>
-											<td>{{serverInfo.server_mode}}</td>
-										</tr>
-										<tr>
-											<td>Map</td>
-											<td>{{serverInfo.server_map}}</td>
-										</tr>
-										<tr>
-											<td>Player Number</td>
-											<td>{{serverInfo.server_player_nums}}</td>
-										</tr>
-										<tr>
-											<td>HasPassword</td>
-											<td>{{serverInfo.isLocked}}</td>
-										</tr>
-									</tbody>
-								</table>
+						<div class="browse-card"  v-for="(tool, index) in tools">
+							<div class="browse-card-header-area center-text">
+								<div class="browse-card-header">
+									{{tool.toolName}}
+								</div>
+							</div>
+							<div class="browse-card-desc-area">
+								<div class="browse-card-desc center-text">
+									{{tool.toolDesc}}
+								</div>
+							</div>
+							<div class="browse-card-button-area">
+								<button class="browse-card-button browse-card-button-back-color browse-card-button-font-color browse-card-button-border-color" @click="UseTool(index)">
+									Use
+								</button>
 							</div>
 						</div>
 					</div>
@@ -103,34 +81,34 @@
 		<script type="text/javascript" src="js/util.js"></script>
 		<script type="text/javascript" src="js/monitor.js"></script>
 		<script type="text/javascript">
-			var ip = getUrlParam("ip");
-			if(ip==null)
-			{
-				window.location.href = "index.html";
-			}
 			
 			var app = new Vue({
 				el: "#page",
 				data: {
-					serverInfo:{
-						server_ip: null,
-						server_name: null,
-						server_module: null,
-						server_mode: null,
-						server_map: null,
-						server_player_nums: null,
-						isLocked: null
-					}
+					tools: [
+						{
+							toolName: "Clear Cache",
+							toolDesc: "Clear the cached data",
+							Use: function(){
+								var rootPath = getCurrentPathWithoutFile();
+								$.post(rootPath + "service/servercacherhandler.php",{
+									action: "clear_cache"
+								}, function(result){
+									var ret = JSON.parse(result);
+									alert(ret.description);
+								});
+							}
+						}
+					]
 				},
 				methods: {
-					
+					UseTool: function(index)
+					{
+						app.tools[index].Use();
+					}
 				},
 				mounted: function(){
-					var path = getCurrentPathWithoutFile();
-					$.get(path + "service/singleserverfetcher.php?ip="+ip, function(result){
-						var ret = JSON.parse(result);
-						app.serverInfo = ret;
-					})
+					//TODO: Get Tools
 				}
 			})
 		</script>
