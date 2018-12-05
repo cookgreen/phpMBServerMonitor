@@ -22,3 +22,20 @@ function getFileName(filepath)
 {
 	return filepath.substring(filepath.lastIndexOf('/')+1, filepath.length);
 }
+
+function getWeishu(digital_number)
+{
+	var ret = parseInt(digital_number) / 10;
+	var weishu = 1;
+	while(ret>1)
+	{
+		ret = getWeishuSub(ret);
+		weishu++;
+	}
+	return weishu;
+}
+function getWeishuSub(digital_number)
+{
+	var ret = digital_number / 10;
+	return ret;
+}

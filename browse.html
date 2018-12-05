@@ -131,10 +131,16 @@
 		</div>
 		<script type="text/javascript" src="js/vue.min.js"></script>
 		<script type="text/javascript" src="js/jquery-2.1.0.js"></script>
-		<script type="text/javascript" src="http://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-		<link rel="stylesheet" href="http://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" />
 		<script type="text/javascript" src="js/monitor.js"></script>
+		<script type="text/javascript" src="js/util.js"></script>
 		<script type="text/javascript">
+			
+			var game_type = getUrlParam('type');
+			if(game_type==null)
+			{
+				game_type="warband";
+			}
+			
 			var app = new Vue({
 				el: "#page",
 				data:{
@@ -176,10 +182,22 @@
 						app.pagedServerInfos = app.serverInfos.slice(start, end);
 					}
 				},
-				mounted: function(){
+				created: function(){
+					this.page_ready = false;
+					if(game_type=="warband")
+					{
+						this.selectedIndexMB = "selected";
+						this.selectedIndexWFaS = "";
+					}
+					else if(game_type=="wfas")
+					{
+						this.selectedIndexMB = "";
+						this.selectedIndexWFaS = "selected";
+					}
+					
 					var fullPath = window.location.href;
 					var rootPath = fullPath.substring(0, fullPath.lastIndexOf("/")+1);
-					var url = rootPath+"service/serverfetcher.php?type=warband" ;
+					var url = rootPath+"service/serverfetcher.php?type="+game_type ;
 					$.get(url, function(result){
 						var ret = JSON.parse(result);
 						app.page_ready = true;

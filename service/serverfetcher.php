@@ -291,6 +291,7 @@ class ServerInfoFetcher
 
 if(isset($_GET["type"]))
 {
+	$s = new ServerInfoFetcher();
 	$interal_type = -1;
 	if(strcmp($_GET["type"], "warband")==0)
 	{
@@ -300,8 +301,15 @@ if(isset($_GET["type"]))
 	{
 		$interal_type = 1;
 	}
-	$s = new ServerInfoFetcher();
 	
+	if(isset($_GET["action"]))
+	{
+		$action = $_GET["action"];
+		if(strcmp($action, "get_number")==0)
+		{
+			echo count($s->FetchServerIPList($interal_type));
+		}
+	}
 	if(isset($_GET["page"]))
 	{
 		$page = $_GET["page"];

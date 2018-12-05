@@ -7,7 +7,7 @@
 		<link rel="stylesheet" href="css/dashboard-skin-native.css" />
 	</head>
 	<body>
-		<div class="containter">
+		<div id="page" class="containter">
 			<div class="left-side-bar left-side-bar-color">
 				<div class="logo logo-color">
 					<div class="logo_text">phpMBServerMonitor</div>
@@ -55,12 +55,32 @@
 				<div class="content">
 					<div class="content-container">
 						<div class="content-area">
-							<div class="dashboard-overview-left dashboard-color-1"></div>
+							<div class="dashboard-overview-left dashboard-color-1">
+								<div class="dashboard-header">
+									Maintenance
+								</div>
+								<div style="width: 100%;">
+									<div class="dashboard-server-overview" @click="BrowseServer('warband')">
+										<div class="height-80-percent">
+											<canvas id="canvas_wb" width="200" height="200"></canvas>
+										</div>
+										<div>Warband</div>
+									</div>
+									<div class="dashboard-server-overview" @click="BrowseServer('wfas')">
+										<div class="height-80-percent">
+											<canvas id="canvas_wfas" width="200" height="200"></canvas>
+										</div>
+										<div>With Fire and Sword</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 					<div class="content-container">
 						<div class="content-area">
-							<div class="dashboard-overview-right dashboard-color-2"></div>
+							<div class="dashboard-overview-right dashboard-color-2">
+								
+							</div>
 						</div>
 					</div>
 					<div class="content-container">
@@ -76,9 +96,97 @@
 				</div>
 			</div>
 		</div>
-		
+		<script type="text/javascript" src="js/jquery-2.1.0.js"></script>
+		<script type="text/javascript" src="js/vue.min.js"></script>
 		<script type="text/javascript" src="js/monitor.js"></script>
+		<script type="text/javascript" src="js/util.js"></script>
 		<script type="text/javascript">
+			var app = new Vue({
+				el: "#page",
+				data: {
+					
+				},
+				methods: {
+					BrowseServer: function(game_type){
+						window.location.href = "browse.html?type="+game_type;
+					}
+				},
+				mounted: function(){
+					Init_Circle();
+					var canvas_wb = document.getElementById('canvas_wb');
+					var canvas_wfas = document.getElementById('canvas_wfas');
+					var radis = 100;
+					var rootPath = getCurrentPathWithoutFile();
+					$.get(rootPath+"service/serverfetcher.php?type=warband&action=get_number", function(result){
+						drawCircle(canvas_wb, radis, parseInt(result));
+					});
+					
+					$.get(rootPath+"service/serverfetcher.php?type=wfas&action=get_number", function(result){
+						drawCircle(canvas_wfas, radis, parseInt(result));
+					});
+				}
+			});
+			
+			function Init_Circle()
+			{
+				var canvas_wb = document.getElementById('canvas_wb');
+				var canvas_wfas = document.getElementById('canvas_wfas');
+				var radis = 100;
+				drawCircle(canvas_wb, radis, "∞");
+				drawCircle(canvas_wfas, radis, "∞");
+			}
+			
+			function drawCircle(canvasObj, radis, number)
+			{
+				var canvasWidth = canvasObj.width;
+				var canvasHeight = canvasObj.height;
+				var drawStartX = canvasWidth / 2;
+				var drawStartY = canvasHeight / 2;
+				var newRadis = radis * 0.8;
+				var ctx = canvasObj.getContext("2d");
+				ctx.fillStyle="white";
+				ctx.beginPath();
+				ctx.arc(drawStartX,drawStartY,radis,0,Math.PI*2,true);
+				ctx.closePath();
+				ctx.fill();
+				drawCircle2(canvasObj, newRadis);
+				drawText(canvasObj, "white", number)
+			}
+			
+			function drawCircle2(canvasObj, radis)
+			{
+				var canvasWidth = canvasObj.width;
+				var canvasHeight = canvasObj.height;
+				var drawStartX = canvasWidth / 2;
+				var drawStartY = canvasHeight / 2;
+				var ctx = canvasObj.getContext("2d");
+				ctx.fillStyle="#04877C";
+				ctx.beginPath();
+				ctx.arc(drawStartX, drawStartY, radis, 0, Math.PI*2, true);
+				ctx.closePath();
+				ctx.fill();
+			}
+			
+			function drawText(canvasObj,color,number)
+			{
+				var fontOffset = 5;
+				var text = number + " Servers";
+				var canvasWidth = canvasObj.width;
+				var canvasHeight = canvasObj.height;
+				
+				var initOffset = 45;
+				if(parseInt(number))
+				{
+					initOffset = initOffset + getWeishu(number)*fontOffset;
+				}
+				
+				var drawStartX = canvasWidth / 2 - initOffset;
+				var drawStartY = canvasHeight / 2 +5;
+				var ctx = canvasObj.getContext("2d");
+				ctx.fillStyle=color;
+				ctx.font = "15pt Arial";
+				ctx.fillText(text, drawStartX,drawStartY);
+			}
 		</script>
 	</body>
 </html>

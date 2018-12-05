@@ -116,6 +116,26 @@ body{
 	margin-right: 48px;
 }
 
+.dashboard-header{
+	height: 22px;
+	color: white;
+	font-size: 20pt;
+	padding: 30px;
+}
+
+.dashboard-server-overview{
+	float: left; 
+	width: 50%; 
+	height:268px; 
+	color: white; 
+	text-align: center;
+	cursor: pointer;
+}
+
+.height-80-percent{
+	height: 80%;
+}
+
 .center-text{
 	text-align: center;
 }
